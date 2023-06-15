@@ -1,4 +1,4 @@
-from rest_framework import serializers, mixins
+from rest_framework import serializers
 
 from titles.models import Title, Category, Genre
 
@@ -22,8 +22,8 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для безопасных методов."""
 
-    category = CategorySerializer()
-    genre = GenreSerializer(many=True)
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
     # С этим уже после отзывов
     rating = serializers.IntegerField(read_only=True)
 
@@ -40,6 +40,7 @@ class TitleSerializer(serializers.ModelSerializer):
         )
 
 
+# Все что придумал это еще один сериализатор для опасных методов.
 class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для небезопасных методов."""
 
@@ -55,4 +56,4 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('name', 'year', 'description', 'genre', 'category')
+        fields = '__all__'

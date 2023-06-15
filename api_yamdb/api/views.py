@@ -3,6 +3,7 @@ from rest_framework import viewsets
 
 from titles.models import Title, Category, Genre
 
+from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 from .serializers import (TitleSerializer, CategorySerializer,
                           GenreSerializer, TitleCreateSerializer)
@@ -14,7 +15,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
