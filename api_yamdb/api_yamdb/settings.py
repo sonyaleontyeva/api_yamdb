@@ -11,7 +11,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-asd
+TEXT_LENGTH = 10
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -21,6 +22,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'django_filters',
+    'api.apps.ApiConfig',
+    'titles.apps.TitlesConfig',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +86,12 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination'
+                                '.PageNumberPagination',
+    'PAGE_SIZE': 5,
+}
 
 
 # Internationalization
