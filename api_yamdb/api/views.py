@@ -1,6 +1,3 @@
-from random import randint
-
-from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
@@ -17,24 +14,7 @@ from .serializers import (TitleSerializer, CategorySerializer,
                           GenreSerializer, TitleCreateSerializer,
                           SignUpSerializer, TokenSerializer,
                           UserSerializer)
-
-
-def get_confirmation_code():
-    """Генерация кода подтверждения в виде 6-значного числа."""
-
-    return randint(100000, 999999)
-
-
-def send_letter(email, confirmation_code):
-    """Отправка письма с кодом подтверждения."""
-
-    send_mail(
-        'Письмо с кодом подтверждения',
-        f'Код подтверждения - {confirmation_code}.',
-        'donotreply@yamdb.ru',
-        [email],
-        fail_silently=False,
-    )
+from .utils import get_confirmation_code, send_letter
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -75,7 +55,7 @@ class UserCreateListViewSet(mixins.ListModelMixin,
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdmin, IsAuthenticated]
+    permission_classes = (IsAdmin, IsAuthenticated)
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username', )
 
@@ -91,7 +71,7 @@ class UserChangeDeleteViewSet(mixins.RetrieveModelMixin,
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdmin, IsAuthenticated]
+    permission_classes = (IsAdmin, IsAuthenticated)
     http_method_names = ['get', 'patch', 'delete']
 
     def retrieve(self, request, username=None):
@@ -112,7 +92,7 @@ class UserMeViewSet(mixins.RetrieveModelMixin,
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [CheckUser, IsAuthenticated]
+    permission_classes = (CheckUser, IsAuthenticated)
     http_method_names = ['get', 'patch']
 
     def retrieve(self, request, username=None):
