@@ -29,6 +29,9 @@ class User(AbstractBaseUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
+    def __str__(self):
+        return self.username
+
     def is_moderator(self):
         return self.role == 'moderator'
 
