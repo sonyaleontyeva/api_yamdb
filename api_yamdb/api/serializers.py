@@ -1,6 +1,9 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from titles.models import Title, Category, Genre
+
+from users.models import User
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -57,3 +60,29 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор пользователей."""
+
+    class Meta:
+        fields = ('username', 'email', 'first_name', 'last_name',
+                  'bio', 'role')
+        model = User
+        read_only_fields = ('role', )
+
+
+class TokenSerializer(TokenObtainPairSerializer, serializers.ModelSerializer):
+    """Сериализатор токенов пользователей."""
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+
+class SignUpSerializer(TokenObtainPairSerializer, serializers.ModelSerializer):
+    """Сериализатор для подтверждения пользователя."""
+
+    class Meta:
+        model = User
+        fields = ('username', )
