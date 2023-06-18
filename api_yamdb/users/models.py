@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
+from django.conf import settings
 from django.core.validators import RegexValidator
 
 
@@ -31,7 +32,7 @@ class User(AbstractBaseUser):
         ordering = ('id',)
 
     def __str__(self):
-        return self.username
+        return self.username[:settings.USERNAME_LENGTH]
 
     def is_moderator(self):
         return self.role == 'moderator'
