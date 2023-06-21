@@ -4,6 +4,7 @@ from rest_framework import routers
 from .views import (TitleViewSet, CategoryViewSet, GenreViewSet,
                     UserCreateListViewSet, UserChangeDeleteViewSet,
                     UserMeViewSet, SignUpViewSet, TokenViewSet)
+from reviews.views import (ReviewViewSet, CommentViewSet)
 
 
 router_v1 = routers.DefaultRouter()
@@ -15,6 +16,10 @@ router_v1.register(r'users/(?P<username>[\w.@+-]+)/', UserChangeDeleteViewSet)
 router_v1.register('users/me', UserMeViewSet)
 router_v1.register('auth/signup', SignUpViewSet, basename='signup')
 router_v1.register('auth/token', TokenViewSet, basename='token')
+router_v1.register(r'titles/(?P<title_id>\d+)/reviews',
+                   ReviewViewSet, basename='reviews')
+router_v1.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)'
+                   r'/comments', CommentViewSet, basename='comments')
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
