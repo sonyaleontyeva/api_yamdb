@@ -41,6 +41,7 @@ class CategoryViewSet(CreateListDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (ReadOnly | IsAdmin,)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -48,6 +49,7 @@ class GenreViewSet(CreateListDestroyViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = (ReadOnly | IsAdmin,)
 
 
 class UserCreateListViewSet(mixins.ListModelMixin,
