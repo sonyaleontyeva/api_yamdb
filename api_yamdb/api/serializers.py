@@ -27,7 +27,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    # С этим уже после отзывов
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -43,7 +42,6 @@ class TitleSerializer(serializers.ModelSerializer):
         )
 
 
-# Все что придумал это еще один сериализатор для опасных методов.
 class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для небезопасных методов."""
 

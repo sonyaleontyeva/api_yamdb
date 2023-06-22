@@ -9,7 +9,7 @@ from users.models import User
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import CheckUser, IsAdmin
+from .permissions import CheckUser, IsAdmin, ReadOnly
 from .serializers import (TitleSerializer, CategorySerializer,
                           GenreSerializer, TitleCreateSerializer,
                           SignUpSerializer, TokenSerializer,
@@ -22,6 +22,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+    permission_classes = (ReadOnly | IsAdmin,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = ('get', 'post', 'patch', 'delete')

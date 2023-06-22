@@ -1,17 +1,15 @@
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
 
 
-class User(AbstractBaseUser):
+class User(AbstractUser):
     username = models.CharField(max_length=150, unique=True, blank=False,
-                                validators=(RegexValidator(r'^[\w.@+-]+\z',),))
+                                validators=(RegexValidator(r'^[\w.@+-]+$',),))
     email = models.EmailField(max_length=254, unique=True, blank=False)
     first_name = models.TextField(max_length=150, blank=True)
     last_name = models.TextField(max_length=150, blank=True)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
 
     bio = models.TextField(
         'Биография',
@@ -23,8 +21,6 @@ class User(AbstractBaseUser):
     # confirmation_code = models.IntegerField(blank=True, default=0)
 
     # user_confirmed = models.BooleanField(default=False)
-
-    USERNAME_FIELD = 'username'
 
     class Meta:
         verbose_name = 'Пользователь'
