@@ -1,10 +1,10 @@
-from django.contrib.auth.models import AbstractBaseUser, UserManager
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
 
 
-class User(AbstractBaseUser):
+class User(AbstractUser):
     username = models.CharField(max_length=150, unique=True, blank=False,
                                 validators=(RegexValidator(r'^[\w.@+-]+$',),))
     email = models.EmailField(max_length=254, unique=True, blank=False)
