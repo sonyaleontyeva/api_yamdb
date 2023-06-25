@@ -3,8 +3,8 @@ from rest_framework import routers
 
 from .views import (TitleViewSet, CategoryViewSet, GenreViewSet,
                     UserCreateListViewSet, UserChangeDeleteViewSet,
-                    UserMeViewSet, SignUpViewSet, TokenViewSet)
-from reviews.views import (ReviewViewSet, CommentViewSet)
+                    UserMeViewSet, SignUpViewSet, TokenViewSet,
+                    ReviewViewSet, CommentViewSet)
 
 
 router_v1 = routers.DefaultRouter()

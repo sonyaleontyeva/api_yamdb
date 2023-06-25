@@ -45,6 +45,9 @@ class Review(models.Model):
             ),
         ]
 
+    def __str__(self):
+        return f"Отзыв {self.author} на {self.title}"
+
 
 class Comment(models.Model):
     review = models.ForeignKey(
@@ -58,7 +61,7 @@ class Comment(models.Model):
     )
     author = models.ForeignKey(
         User,
-        verbose_name='Пользователь',
+        verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='comments'
     )
@@ -71,4 +74,7 @@ class Comment(models.Model):
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ['pub_date']
+        ordering = ['-pub_date']
+
+    def __str__(self):
+        return f"Комментарий {self.author} на {self.review}"
