@@ -1,3 +1,5 @@
+from django.db.models import Avg
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
@@ -5,13 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from titles.models import Title, Category, Genre
-from users.models import User
 from reviews.models import Review
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import (CheckUser, IsAdmin,
-                          IsAdminModeratorOwnerOrReadOnly)
+                          ReadOnly, IsAdminModeratorOwnerOrReadOnly)
 from .serializers import (TitleSerializer, CategorySerializer,
                           GenreSerializer, TitleCreateSerializer,
                           SignUpSerializer, TokenSerializer,
@@ -19,10 +20,13 @@ from .serializers import (TitleSerializer, CategorySerializer,
 from .utils import get_confirmation_code, send_letter
 
 
+User = get_user_model()
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""
 
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = (ReadOnly | IsAdmin,)
     filter_backends = (DjangoFilterBackend,)
@@ -139,37 +143,44 @@ class TokenViewSet(mixins.CreateModelMixin,
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для отзывов."""
+
     serializer_class = ReviewSerializer
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
 
+    # Припоминаю как меня ревьюер ругался за ненужные переменные
     def get_queryset(self):
-        title = self.get_title()
-        return title.reviews.all()
+        """Метод для получения queryset с отзывами."""
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title = self.get_title()
-        serializer.save(author=self.request.user, title=title)
+        """Метод для сохранения отзыва с автором текущего пользователя."""
+        serializer.save(author=self.request.user, title=self.get_title())
 
     def get_title(self):
+        """Метод для получения объекта Title."""
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
         return title
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для комментариев."""
+
     serializer_class = CommentSerializer
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
 
     def get_queryset(self):
-        review = self.get_review()
-        return review.comments.all()
+        """Метод для получения queryset с комментариями."""
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
-        review = self.get_review()
-        serializer.save(author=self.request.user, review=review)
+        """Метод для сохранения комментария с автором текущего пользователя."""
+        serializer.save(author=self.request.user, review=self.get_review())
 
+    # У нас ведь и так айдишник уникальный? Зачем еще и title туда передавать
     def get_review(self):
-        title_id = self.kwargs.get('title_id')
+        """Метод для получения объекта Review."""
         review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, id=review_id, title__id=title_id)
+        review = get_object_or_404(Review, id=review_id)
         return review
