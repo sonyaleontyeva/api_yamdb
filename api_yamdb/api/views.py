@@ -84,7 +84,8 @@ class UserChangeDeleteViewSet(mixins.RetrieveModelMixin,
     def partial_update(self, request, username=None):
         found_user = get_object_or_404(self.queryset, username=username)
         serializer = self.serializer_class(found_user)
-        return Response(serializer.data)
+        if serializer.is_valid():
+            serializer.save()
 
 
 class UserMeViewSet(mixins.RetrieveModelMixin,
@@ -119,7 +120,7 @@ class SignUpViewSet(mixins.CreateModelMixin,
     def create(self, request, username=None, email=None):
         found_user = get_object_or_404(self.queryset, username=username,
                                        email=email)
-        confirmation_code = get_confirmation_code()
+        confirmation_code = get_confirmation_code(found_user)
 
         send_letter(email, confirmation_code)
 
