@@ -6,14 +6,16 @@ from rest_framework.response import Response
 
 from titles.models import Title, Category, Genre
 from users.models import User
+from reviews.models import Review
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import CheckUser, IsAdmin
+from .permissions import (CheckUser, IsAdmin,
+                          IsAdminModeratorOwnerOrReadOnly)
 from .serializers import (TitleSerializer, CategorySerializer,
                           GenreSerializer, TitleCreateSerializer,
                           SignUpSerializer, TokenSerializer,
-                          UserSerializer)
+                          UserSerializer, CommentSerializer, ReviewSerializer)
 from .utils import get_confirmation_code, send_letter
 
 
@@ -130,3 +132,40 @@ class TokenViewSet(mixins.CreateModelMixin,
     """Вьюсет для отправки токена."""
 
     serializer_class = TokenSerializer
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAdminModeratorOwnerOrReadOnly]
+
+    def get_queryset(self):
+        title = self.get_title()
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = self.get_title()
+        serializer.save(author=self.request.user, title=title)
+
+    def get_title(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        return title
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAdminModeratorOwnerOrReadOnly]
+
+    def get_queryset(self):
+        review = self.get_review()
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review = self.get_review()
+        serializer.save(author=self.request.user, review=review)
+
+    def get_review(self):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title__id=title_id)
+        return review
