@@ -4,9 +4,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
 
 from titles.models import Title, Category, Genre
+from users.models import User
 from reviews.models import Review, Comment
-
-User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):

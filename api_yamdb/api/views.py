@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from titles.models import Title, Category, Genre
+from users.models import User
 from reviews.models import Review
 
 from .filters import TitleFilter
@@ -18,9 +19,6 @@ from .serializers import (TitleSerializer, CategorySerializer,
                           SignUpSerializer, TokenSerializer,
                           UserSerializer, CommentSerializer, ReviewSerializer)
 from .utils import get_confirmation_code, send_letter
-
-
-User = get_user_model()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -65,8 +63,8 @@ class UserCreateListViewSet(mixins.ListModelMixin,
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin, IsAuthenticated)
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('username', )
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     def perform_create(self, serializer):
         serializer.save(role='user')
