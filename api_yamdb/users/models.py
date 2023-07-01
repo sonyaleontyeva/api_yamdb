@@ -10,8 +10,6 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254, unique=True, blank=False)
     first_name = models.TextField(max_length=150, blank=True)
     last_name = models.TextField(max_length=150, blank=True)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
 
     bio = models.TextField(
         'Биография',

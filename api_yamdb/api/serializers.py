@@ -1,12 +1,11 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
 
 from titles.models import Title, Category, Genre
-from reviews.models import Review, Comment
-
 from users.models import User
+from reviews.models import Review, Comment
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -30,7 +29,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    # С этим уже после отзывов
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -46,7 +44,6 @@ class TitleSerializer(serializers.ModelSerializer):
         )
 
 
-# Все что придумал это еще один сериализатор для опасных методов.
 class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для небезопасных методов."""
 
@@ -72,7 +69,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name', 'last_name',
                   'bio', 'role')
         model = User
-        read_only_fields = ('role', )
+        read_only_fields = ('role',)
 
 
 class TokenSerializer(TokenObtainPairSerializer, serializers.ModelSerializer):
@@ -88,10 +85,12 @@ class SignUpSerializer(TokenObtainPairSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', )
+        fields = ('username',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор отзывов."""
+
     title = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True,
@@ -103,11 +102,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        request = self.context['request']
+        """Валидация на повторные отзывы."""
+        request = self.context.get('request')
         author = request.user
-        title_id = self.context['view'].kwargs.get('title_id')
+        title_id = self.context.get('view').kwargs.get('title_id')
         if request.method == 'POST':
-            if Review.objects.filter(title_id=title_id,author=author).exists():
+            if Review.objects.filter(title=title_id,
+                                     author=author).exists():
                 raise ValidationError('Вы не можете добавить более одного '
                                       'отзыва на произведение')
         return data
@@ -118,6 +119,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор комментариев."""
+
     review = serializers.SlugRelatedField(
         slug_field='text',
         read_only=True

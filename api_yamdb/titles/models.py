@@ -73,11 +73,6 @@ class Title(models.Model):
         on_delete=models.SET_NULL,
         verbose_name='Категория'
     )
-    rating = models.IntegerField(
-        verbose_name='Рейтинг',
-        null=True,
-        default=None
-    )
 
     class Meta:
         verbose_name = 'Произведение'
@@ -86,3 +81,26 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name[:settings.TEXT_LENGTH]
+
+
+class GenreTitle(models.Model):
+    """Класс модели для связи жанров и произведений."""
+
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        verbose_name='Жанр'
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='Произведение'
+    )
+
+    class Meta:
+        verbose_name = 'Связь жанра и произведения'
+        verbose_name_plural = 'Связи жанров и произведений'
+        ordering = ('id',)
+
+    def __str__(self):
+        return f'{self.title} относится к жанру {self.genre}'
