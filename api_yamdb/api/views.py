@@ -1,8 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import filters, mixins, viewsets, status
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from titles.models import Title, Category, Genre
 from users.models import User
@@ -12,9 +13,11 @@ from .mixins import CreateListDestroyViewSet
 from .permissions import CheckUser, IsAdmin
 from .serializers import (TitleSerializer, CategorySerializer,
                           GenreSerializer, TitleCreateSerializer,
-                          SignUpSerializer, TokenSerializer,
-                          UserSerializer)
-from .utils import get_confirmation_code, send_letter
+                          SignUpSerializer, UserSerializer,
+                          TokenObtainPairSerializer)
+from .utils import (get_confirmation_code,
+                    check_confirmation_code,
+                    send_letter)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -55,7 +58,7 @@ class UserCreateListViewSet(mixins.ListModelMixin,
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdmin, IsAuthenticated)
+    permission_classes = (IsAuthenticated, IsAdmin)
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username', )
 
@@ -71,7 +74,7 @@ class UserChangeDeleteViewSet(mixins.RetrieveModelMixin,
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdmin, IsAuthenticated)
+    permission_classes = (IsAuthenticated, IsAdmin)
     http_method_names = ['get', 'patch', 'delete']
 
     def retrieve(self, request, username=None):
@@ -93,7 +96,7 @@ class UserMeViewSet(mixins.RetrieveModelMixin,
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (CheckUser, IsAuthenticated)
+    permission_classes = (IsAuthenticated, CheckUser)
     http_method_names = ['get', 'patch']
 
     def retrieve(self, request, username=None):
@@ -114,20 +117,43 @@ class SignUpViewSet(mixins.CreateModelMixin,
     """Вьюсет для регистрации с отправкой кода подтверждения по email."""
 
     serializer_class = SignUpSerializer
+    permission_classes = (AllowAny, )
+    queryset = User.objects.all()
 
-    def create(self, request, username=None, email=None):
-        found_user = get_object_or_404(self.queryset, username=username,
-                                       email=email)
+    def create(self, request):
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        found_user, _ = User.objects.get_or_create(
+            username=self.request.data.get('username'),
+            email=self.request.data.get('email')
+        )
         confirmation_code = get_confirmation_code(found_user)
 
-        send_letter(email, confirmation_code)
+        send_letter(self.request.data.get('email'), confirmation_code)
 
         # found_user.confirmation_code = confirmation_code
-        found_user.save()
+        # found_user.save()
+        serializer = self.serializer_class(found_user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class TokenViewSet(mixins.CreateModelMixin,
-                   viewsets.GenericViewSet):
-    """Вьюсет для отправки токена."""
+class GetTokenViewSet(mixins.CreateModelMixin,
+                      viewsets.GenericViewSet):
+    """Вьюсет для получения токена аутентификации."""
 
-    serializer_class = TokenSerializer
+    serializer_class = TokenObtainPairSerializer
+    permission_classes = (AllowAny, )
+    queryset = User.objects.all()
+
+    def create(self, request):
+        user_confirmed = check_confirmation_code(
+            self.request.data.get('username'),
+            self.request.data.get('confirmation_code')
+        )
+
+        if user_confirmed:
+            serializer = self.serializer_class
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)

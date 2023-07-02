@@ -71,13 +71,23 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         read_only_fields = ('role', )
 
+    def validate_first_name(self, value):
+        if len(value) > 150:
+            raise serializers.ValidationError('first_name должен содержать не '
+                                              'более 150 символов!')
+        return value
 
-class TokenSerializer(TokenObtainPairSerializer, serializers.ModelSerializer):
-    """Сериализатор токенов пользователей."""
+    def validate_last_name(self, value):
+        if len(value) > 150:
+            raise serializers.ValidationError('last_name должен содержать не '
+                                              'более 150 символов!')
+        return value
 
-    class Meta:
-        model = User
-        fields = ('username', 'email')
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('Недопустимое значение '
+                                              'username!')
+        return value
 
 
 class SignUpSerializer(TokenObtainPairSerializer, serializers.ModelSerializer):
@@ -85,4 +95,28 @@ class SignUpSerializer(TokenObtainPairSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', )
+        fields = ('username', 'email')
+
+    def validate(self, data):
+        if (User.objects.get(username=data.get('username'))
+                and not User.objects.get(email=data.get('email'))):
+            raise serializers.ValidationError('Недопустимое значение '
+                                              'username!')
+
+        if (User.objects.get(email=data.get('email'))
+                and not User.objects.get(username=data.get('username'))):
+            raise serializers.ValidationError('Недопустимое значение '
+                                              'email!')
+        return data
+
+    # def validate_username(self, value):
+    #     if User.objects.get(username=value):
+    #         raise serializers.ValidationError('Недопустимое значение '
+    #                                           'username!')
+    #     return value
+
+    # def validate_email(self, value):
+    #     if User.objects.get(email=value):
+    #         raise serializers.ValidationError('Недопустимое значение '
+    #                                           'email!')
+    #     return value
